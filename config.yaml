@@ -1,0 +1,37 @@
+# ═══════════════════════════════════════════════════════════════
+# 乳腺癌 IDC 分类 — 训练配置文件
+# ═══════════════════════════════════════════════════════════════
+
+# ── 模型 ──────────────────────────────────────────────────────
+model:
+  num_classes: 2          # 二分类: Non-IDC (0) / IDC (1)
+  pretrained: true        # 是否加载 ImageNet 预训练权重
+  freeze_backbone: false  # 是否冻结 backbone，仅训练分类头
+
+# ── 优化器 ────────────────────────────────────────────────────
+optimizer:
+  name: adam              # adam | sgd | adamw
+  lr: 0.0001              # 初始学习率 (1e-4)
+  weight_decay: 0.00001   # L2 正则化系数 (1e-5)
+  momentum: 0.9           # SGD 动量 (仅 sgd 生效)
+
+# ── 学习率调度器 ──────────────────────────────────────────────
+scheduler:
+  name: cosine            # cosine | step | plateau
+  step_size: 10           # StepLR: 每隔多少 epoch 衰减
+  gamma: 0.1              # StepLR: 衰减因子
+  patience: 5             # ReduceLROnPlateau: 容忍 epoch 数
+
+# ── 训练 ──────────────────────────────────────────────────────
+training:
+  epochs: 50              # 总训练轮数
+  batch_size: 64          # 批次大小
+  max_grad_norm: 1.0      # 梯度裁剪最大范数
+  checkpoint_dir: ./checkpoints  # checkpoint 保存目录
+  save_every: 10          # 每隔多少 epoch 保存一次 checkpoint
+
+# ── 损失函数 ──────────────────────────────────────────────────
+loss:
+  name: cross_entropy     # cross_entropy | focal
+  alpha: 0.25             # Focal Loss 正类权重 (仅 focal 生效)
+  gamma: 2.0              # Focal Loss 聚焦参数 (仅 focal 生效)
