@@ -44,7 +44,7 @@ class BreastResNet(nn.Module):
         super().__init__()
         weights = ResNet50_Weights.DEFAULT if pretrained else None
         self.backbone = resnet50(weights=weights)
-        self.backbone.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        #self.backbone.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         in_features = self.backbone.fc.in_features
         self.backbone.fc = nn.Sequential(nn.Dropout(0.3), nn.Linear(in_features, num_classes))
         if freeze_backbone:
@@ -201,7 +201,9 @@ def run_training(data_dir: str, config: Optional[Dict] = None, device: Optional[
 
     batch_size = config.get("training", {}).get("batch_size", 64)
     dataloaders = get_dataloaders(data_dir, batch_size=batch_size)
-    train_loader, val_loader = dataloaders["train"], dataloaders["test"]
+    train_loader = dataloaders["train"]
+    val_loader = dataloaders["val"]     
+    test_loader = dataloaders["test"]   
 
     model = build_model(config).to(device)
     criterion = build_criterion(config)
@@ -216,6 +218,10 @@ def run_training(data_dir: str, config: Optional[Dict] = None, device: Optional[
     best_path = os.path.join(checkpoint_dir, "best_model.pth")
     ckpt = torch.load(best_path, map_location=device, weights_only=False)
     model.load_state_dict(ckpt["model_state_dict"])
+
+    test_loss, test_acc = trainer.validate(test_loader)
+    print(f" 最终测试准确率 (Test Acc): {test_acc:.4f} | 对应 Epoch: {ckpt['epoch']}")
+
     return model, history
 
 
